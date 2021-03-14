@@ -1,5 +1,7 @@
 import Server from "./Server";
 import App from "./App";
-import DataBase from "./DataBase";
+import Database from "./Database";
 
-export { Server, App, DataBase };
+import Controller from "./Controller";
+
+export { Server, App, Database, Controller };

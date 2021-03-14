@@ -1,18 +1,17 @@
 import App from "../App";
-import DataBase from "../DataBase";
+import Database from "../Database";
 
 export interface IServerInit {
   app: App;
-  db: DataBase;
+  db: Database;
   port: number;
 }
 
 export default class Server {
   private app: App;
-  private db: DataBase;
+  private db: Database;
   private port: number;
   constructor(serverInit: IServerInit) {
-    console.log("[ServerInit - constructor]: serverInit -> ", serverInit);
     this.app = serverInit.app;
     this.db = serverInit.db;
     this.port = serverInit.port;

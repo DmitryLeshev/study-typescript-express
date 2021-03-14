@@ -1,1 +1,1 @@
-export { default } from "./DataBase";
+export { default } from "./Database";

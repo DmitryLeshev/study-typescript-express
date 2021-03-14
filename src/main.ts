@@ -1,17 +1,45 @@
-console.log("start project");
+import dotenv from "dotenv";
+dotenv.config({ path: ".env" });
 
-type Gender = "male" | "female";
+import bodyParser from "body-parser";
+import fileUpload from "express-fileupload";
+import morgan from "morgan";
 
-interface User {
-  name: string;
-  age: number;
-  gender: Gender;
-}
+import { Server, App, Database } from "./classes";
 
-const user: User = { name: "John", age: 21, gender: "female" };
+import {
+  IndexController,
+  UsersController,
+  AuthController,
+} from "./api/v1/index";
 
-const fn = (a: number, b: number): number => {
-  return a + b;
-};
+const app = new App({
+  apiVersion: process.env.API_VERSION,
+  controllers: [
+    new IndexController(),
+    new UsersController(),
+    new AuthController(),
+  ],
+  middlewares: [
+    bodyParser.json(),
+    bodyParser.urlencoded({ extended: true }),
+    fileUpload({}),
+    morgan("dev"),
+  ],
+});
 
-fn(1, 2);
+export const db = new Database({
+  user: process.env.POSTGRES_DB_USER,
+  host: process.env.POSTGRES_DB_HOST,
+  database: process.env.POSTGRES_DB_NAME,
+  password: process.env.POSTGRES_DB_PASSWORD,
+  port: Number(process.env.POSTGRES_DB_PORT),
+});
+
+const server = new Server({
+  port: Number(process.env.PORT),
+  app,
+  db,
+});
+
+server.start();

@@ -12,7 +12,6 @@ export default class App {
   private apiVersion: string;
 
   constructor(appInit: IAppInit) {
-    console.log("[APP - constructor]: appInit -> ", appInit);
     this.app = express();
     this.apiVersion = appInit.apiVersion;
 

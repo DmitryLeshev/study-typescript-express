@@ -8,18 +8,17 @@ export interface IDbInit {
   port: number;
 }
 
-export default class DataBase {
+export default class Database {
   private client: any;
   constructor(dbInit: IDbInit) {
-    console.log("[DataBase - constructor]: dbInit -> ", dbInit);
     this.client = new Client(dbInit);
   }
   public connect = async () => {
     try {
       await this.client.connect();
-      console.log("[DataBase]: connected");
+      console.log("[Database]: connected");
     } catch (err) {
-      console.error("[DataBase]: Connection error", err.stack);
+      console.error("[Database]: Connection error", err.stack);
     }
   };
 
