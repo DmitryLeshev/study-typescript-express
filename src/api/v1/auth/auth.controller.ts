@@ -4,6 +4,81 @@ import { Methods, IRoute } from "../../../classes/Controller/Controller";
 import { db } from "../../../main";
 import { check, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+// Вынести в ютилиты
+const generateAccessToken = (id: number, roles: string[]) => {
+  const payload = { id, roles };
+  return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
+};
+
+// В мидлваре
+const authMiddleware = (
+  req: Request & { user: any },
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.method === "OPTIONS") return next();
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) {
+      return res.status(403).json({
+        code: 403,
+        status: "fail",
+        message: "Пользователь не авторизован",
+      });
+    }
+    console.log(token);
+    const decodedData = jwt.verify(token, process.env.SECRET_KEY);
+    req.user = decodedData;
+    next();
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      code: 500,
+      status: "error",
+      message: "Block catch authMiddleware",
+    });
+  }
+};
+
+const roleMiddleware = (roles) => (req, res, next) => {
+  if (req.method === "OPTIONS") return next();
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) {
+      return res.status(403).json({
+        code: 403,
+        status: "fail",
+        message: "Пользователь не авторизован",
+      });
+    }
+    const { roles: userRoles }: any = jwt.verify(token, process.env.SECRET_KEY);
+    let hasRole: boolean = false;
+
+    userRoles.forEach((el: string) => {
+      if (roles.includes(el)) {
+        hasRole = true;
+      }
+    });
+
+    if (!hasRole) {
+      return res.status(403).json({
+        code: 403,
+        status: "fail",
+        message: "У вас нет доступа",
+      });
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      code: 500,
+      status: "error",
+      message: "Block catch roleMiddleware",
+    });
+  }
+};
 
 export default class AuthController extends Controller {
   public path = "/auth";
@@ -36,7 +111,7 @@ export default class AuthController extends Controller {
         path: "/users",
         method: Methods.GET,
         handler: this.getUsers,
-        localMiddleware: [],
+        localMiddleware: [authMiddleware, roleMiddleware(["ADMIN"])],
       },
     ];
 
@@ -92,7 +167,33 @@ export default class AuthController extends Controller {
     }
   };
 
-  login = (req: Request, res: Response, next: NextFunction) => {
-    this.ok<string[]>(res);
+  login = async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
+    let query = `SELECT * FROM users WHERE email = '${email}'`;
+    const user = await (await db.query(query)).rows[0];
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "fail", message: "Такого пользователя в базе нэту" });
+    }
+    query = `SELECT r.role FROM users_roles ur LEFT JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ${user.id}`;
+    const userRoles = await (await db.query(query)).rows;
+    const validPassword = bcrypt.compareSync(password, user.password);
+    if (!validPassword) {
+      return res.status(400).json({
+        status: "fail",
+        message:
+          "Не верный пароль, знаю-знаю это подсказка для злоумышленников",
+      });
+    }
+    const token = generateAccessToken(
+      user.id,
+      userRoles.map((el) => el.role)
+    );
+    this.ok(
+      res,
+      "Ну тип ты прошёл проверку, чутка позже оправлю тебе токен, что бы система понимала авторизован ли ты",
+      token
+    );
   };
 }
