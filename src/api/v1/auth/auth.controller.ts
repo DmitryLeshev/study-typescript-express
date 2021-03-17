@@ -124,12 +124,12 @@ export default class AuthController extends Controller {
 
   registration = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const error = validationResult(req);
-      console.log(error);
-      if (!error.isEmpty()) {
+      const errors = validationResult(req);
+      console.log(errors);
+      if (!errors.isEmpty()) {
         return res
           .status(400)
-          .json({ status: "fail", message: "Express validator", error });
+          .json({ status: "fail", message: "Express validator", errors });
       }
       const { email, password, role } = req.body;
       console.log(email, password);
