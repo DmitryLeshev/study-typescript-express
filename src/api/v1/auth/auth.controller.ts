@@ -149,9 +149,8 @@ export default class AuthController extends Controller {
           message: "Не получилось создать пользователя",
         });
       }
-      query = `INSERT INTO users_roles (user_id, role_id) VALUES('${
-        user.id
-      }', ${role || 1}) RETURNING *`;
+      query = `INSERT INTO users_roles (user_id, role_id) VALUES('${user.id
+        }', ${role || 1}) RETURNING *`;
       const userRole = await (await db.query(query)).rows[0];
       if (!userRole) {
         return res
