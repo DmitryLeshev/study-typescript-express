@@ -1,17 +1,25 @@
-<<<<<<< HEAD
-class AuthService {}
-=======
-import { RegistrationDTO } from "./dto/registration.dto"
+import Service from "../../../classes/Service";
+import { db } from "../../../main";
+import { IUser, RegistrationDTO } from "./auth.types";
 
-class User {
-
+class UserSchema {
+  private tableName = "users";
+  public getOne = async (obj: any) => {
+    const { where } = obj;
+    const key = Object.keys(where)[0];
+    const query = `SELECT * FROM ${this.tableName} WHERE ${key} = '${where[key]}'`;
+    const user = await (await db.query(query)).rows[0];
+    return user;
+  };
 }
 
-
-
-export default class AuthService {
-    registration = async (dto: RegistrationDTO) => {
-        const { email, password } = dto
-    }
+export default class AuthService extends Service {
+  registration = async (dto: RegistrationDTO): Promise<any> => {
+    const User = new UserSchema();
+    const { email, password, role } = dto;
+    const user: IUser = await User.getOne({ where: { email } });
+    console.log("registartion", user);
+    if (user) return this.badRequest;
+    return user;
+  };
 }
->>>>>>> 5ca9f0697d1bce5ca23c6edf21cad85b1df107d7

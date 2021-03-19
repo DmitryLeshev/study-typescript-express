@@ -102,7 +102,6 @@ export default class ClientResponse {
       code: 500,
       status: "error",
       message: message || "Internal Server Error",
-      error,
     });
   }
 
