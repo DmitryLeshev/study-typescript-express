@@ -6,6 +6,7 @@ export default class ClientResponse {
     return res.status(code).json({
       code: HttpStatusCode.OK,
       message,
+      data,
     });
   };
 
