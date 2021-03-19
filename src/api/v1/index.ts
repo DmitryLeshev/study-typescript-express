@@ -1,40 +1,32 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { Methods } from "../../classes/Controller/Controller"; // Вынести в типы
 
 import UsersController from "./users";
 import AuthController from "./auth";
 
-class IndexController {
+import { Controller } from "../../classes";
+import { IRoute, Methods } from "../../classes/Controller/types";
+
+class IndexController extends Controller {
   public path = "/";
   public router = Router();
+  public routes: IRoute[];
 
   constructor() {
-    this.initRouter();
-  }
+    super();
+    this.routes = [
+      {
+        path: "/",
+        method: Methods.GET,
+        handler: this.handleIndex,
+        localMiddleware: [],
+      },
+    ];
 
-  initRouter() {
-    this.router.get(this.path, this.handleIndex);
+    this.setRoutes();
   }
-
-  routes = [
-    {
-      path: "/",
-      method: Methods.GET,
-      handler: this.handleIndex,
-      localMiddleware: [],
-    },
-  ];
 
   async handleIndex(_req: Request, res: Response, _next: NextFunction) {
-    res.status(200).json({
-      code: 200,
-      status: "success",
-      message: "У тебя получилось сделать запросик",
-      data: {
-        id: 1,
-        name: "Красавчик",
-      },
-    });
+    this.ok(res);
   }
 }
 

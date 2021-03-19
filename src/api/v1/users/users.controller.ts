@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { Controller } from "../../../classes";
-import { Methods, IRoute } from "../../../classes/Controller/Controller";
+import { Methods, IRoute } from "../../../classes/Controller/types";
 
 export default class UsersController extends Controller {
   public path = "/users";

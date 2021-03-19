@@ -1,8 +1,13 @@
 import { Response } from "express";
-import { HttpStatusCode, HttpStatusMessage, MyResponse } from "./types";
+import {
+  HttpStatusCode,
+  HttpStatusMessage,
+  HttpStatusVariant,
+  MyResponse,
+} from "./types";
 
 export default class ClientResponse {
-  test: MyResponse<any> = (res, code, message, data) => {
+  public test: MyResponse<any> = (res, code, message, data) => {
     return res.status(code).json({
       code: HttpStatusCode.OK,
       message,
@@ -10,7 +15,7 @@ export default class ClientResponse {
     });
   };
 
-  ok<T>(res: Response, message?: string, data?: T): Response {
+  public ok<T>(res: Response, message?: string, data?: T): Response {
     return res.status(200).json({
       code: 200,
       status: "success",
@@ -19,7 +24,7 @@ export default class ClientResponse {
     });
   }
 
-  created<T>(res: Response, message?: string, data?: T): Response {
+  public created<T>(res: Response, message?: string, data?: T): Response {
     return res.status(201).json({
       code: 201,
       status: "success",
@@ -28,7 +33,7 @@ export default class ClientResponse {
     });
   }
 
-  noContent<T>(res: Response, message?: string, data?: T): Response {
+  public noContent<T>(res: Response, message?: string, data?: T): Response {
     return res.status(204).json({
       code: 204,
       status: "success",
@@ -37,7 +42,7 @@ export default class ClientResponse {
     });
   }
 
-  found<T>(res: Response, message?: string, data?: T): Response {
+  public found<T>(res: Response, message?: string, data?: T): Response {
     return res.status(302).json({
       code: 302,
       status: "success",
@@ -46,7 +51,7 @@ export default class ClientResponse {
     });
   }
 
-  notModified<T>(res: Response, message?: string, data?: T): Response {
+  public notModified<T>(res: Response, message?: string, data?: T): Response {
     return res.status(304).json({
       code: 304,
       status: "success",
@@ -55,7 +60,7 @@ export default class ClientResponse {
     });
   }
 
-  badRequest<T>(res: Response, message?: string, data?: T): Response {
+  public badRequest<T>(res: Response, message?: string, data?: T): Response {
     return res.status(400).json({
       code: 400,
       status: "fail",
@@ -64,7 +69,7 @@ export default class ClientResponse {
     });
   }
 
-  unauthorized<T>(res: Response, message?: string, data?: T): Response {
+  public unauthorized<T>(res: Response, message?: string, data?: T): Response {
     return res.status(401).json({
       code: 401,
       status: "fail",
@@ -73,7 +78,16 @@ export default class ClientResponse {
     });
   }
 
-  notFound<T>(res: Response, message?: string, data?: T): Response {
+  public forbidden<T>(res: Response, message?: string, data?: T): Response {
+    return res.status(HttpStatusCode.FORBIDDEN).json({
+      code: HttpStatusCode.FORBIDDEN,
+      status: HttpStatusVariant.FAIL,
+      message: message || HttpStatusMessage.FORBIDDEN,
+      data,
+    });
+  }
+
+  public notFound<T>(res: Response, message?: string, data?: T): Response {
     return res.status(404).json({
       code: 404,
       status: "fail",
@@ -82,16 +96,17 @@ export default class ClientResponse {
     });
   }
 
-  serverError<T>(res: Response, message?: string, data?: T): Response {
+  public serverError<T>(res: Response, message?: string, error?: T): Response {
+    if (error) console.log(error);
     return res.status(500).json({
       code: 500,
       status: "error",
       message: message || "Internal Server Error",
-      data,
+      error,
     });
   }
 
-  jsonResponse<T>(
+  public jsonResponse<T>(
     res: Response,
     code: number,
     message?: string,
@@ -102,6 +117,16 @@ export default class ClientResponse {
       status: code < 400 ? "success" : code < 500 ? "fail" : "error",
       message,
       data,
+    });
+  }
+
+  public validatorErrors<T>(res: Response, errors?: T): Response {
+    if (errors) console.log(errors);
+    return res.status(400).json({
+      code: 400,
+      status: "fail",
+      message: "Express validator",
+      ...errors,
     });
   }
 }

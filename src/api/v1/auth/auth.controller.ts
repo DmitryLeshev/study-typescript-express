@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response, Router } from "express";
-import { Controller } from "../../../classes";
-import { Methods, IRoute } from "../../../classes/Controller/Controller";
+import { Controller, Middlewares } from "../../../classes";
+import { Methods, IRoute } from "../../../classes/Controller/types";
 import { db } from "../../../main";
 import { check, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { Roles } from "../../../types/roles.types";
 
 // Вынести в ютилиты
 const generateAccessToken = (id: number, roles: string[]) => {
@@ -12,78 +13,12 @@ const generateAccessToken = (id: number, roles: string[]) => {
   return jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: "1h" });
 };
 
-// В мидлваре
-const authMiddleware = (
-  req: Request & { user: any },
-  res: Response,
-  next: NextFunction
-) => {
-  if (req.method === "OPTIONS") return next();
-  try {
-    const token = req.headers.authorization.split(" ")[1];
-    if (!token) {
-      return res.status(403).json({
-        code: 403,
-        status: "fail",
-        message: "Пользователь не авторизован",
-      });
-    }
-    console.log(token);
-    const decodedData = jwt.verify(token, process.env.SECRET_KEY);
-    req.user = decodedData;
-    next();
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      code: 500,
-      status: "error",
-      message: "Block catch authMiddleware",
-    });
-  }
-};
-
-const roleMiddleware = (roles) => (req, res, next) => {
-  if (req.method === "OPTIONS") return next();
-  try {
-    const token = req.headers.authorization.split(" ")[1];
-    if (!token) {
-      return res.status(403).json({
-        code: 403,
-        status: "fail",
-        message: "Пользователь не авторизован",
-      });
-    }
-    const { roles: userRoles }: any = jwt.verify(token, process.env.SECRET_KEY);
-    let hasRole: boolean = false;
-
-    userRoles.forEach((el: string) => {
-      if (roles.includes(el)) {
-        hasRole = true;
-      }
-    });
-
-    if (!hasRole) {
-      return res.status(403).json({
-        code: 403,
-        status: "fail",
-        message: "У вас нет доступа",
-      });
-    }
-    next();
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      code: 500,
-      status: "error",
-      message: "Block catch roleMiddleware",
-    });
-  }
-};
-
 export default class AuthController extends Controller {
   public path = "/auth";
   public router: Router = Router();
   public routes: IRoute[];
+
+  private middlewares = new Middlewares();
 
   constructor() {
     super();
@@ -111,7 +46,7 @@ export default class AuthController extends Controller {
         path: "/users",
         method: Methods.GET,
         handler: this.getUsers,
-        localMiddleware: [authMiddleware, roleMiddleware(["ADMIN"])],
+        localMiddleware: [this.middlewares.rolesAvailable([Roles.USER])],
       },
     ];
 
@@ -127,9 +62,7 @@ export default class AuthController extends Controller {
       const errors = validationResult(req);
       console.log(errors);
       if (!errors.isEmpty()) {
-        return res
-          .status(400)
-          .json({ status: "fail", message: "Express validator", errors });
+        return this.validatorErrors(res, errors);
       }
       const { email, password, role } = req.body;
       console.log(email, password);

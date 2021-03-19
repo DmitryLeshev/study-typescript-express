@@ -1,1 +1,1 @@
-export {default } './Middlewares'
+export { default } from "./Middlewares";

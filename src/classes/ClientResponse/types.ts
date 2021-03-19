@@ -8,6 +8,7 @@ export const enum HttpStatusCode {
   NOT_MODIFIED = 304,
   BAD_REQUEST = 400,
   UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
   NOT_FOUND = 404,
   INTERNAL_SERVER_ERROR = 500,
 }
@@ -20,8 +21,15 @@ export const enum HttpStatusMessage {
   NOT_MODIFIED = "NOT MODIFIED",
   BAD_REQUEST = "BAD REQUEST",
   UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
   NOT_FOUND = "NOT FOUND",
   INTERNAL_SERVER_ERROR = "INTERNAL SERVER ERROR",
+}
+
+export const enum HttpStatusVariant {
+  SUCCESS = "success",
+  FAIL = "fail",
+  ERROR = "error",
 }
 
 export interface MyResponse<T> {
