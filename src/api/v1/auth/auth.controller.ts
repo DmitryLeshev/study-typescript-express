@@ -49,7 +49,10 @@ export default class AuthController extends Controller {
         path: "/users",
         method: Methods.GET,
         handler: this.getUsers,
-        localMiddleware: [this.middlewares.rolesAvailable([Roles.USER])],
+        localMiddleware: [
+          this.middlewares.authCheck,
+          this.middlewares.rolesAvailable([Roles.USER]),
+        ],
       },
     ];
 
@@ -66,42 +69,22 @@ export default class AuthController extends Controller {
       if (!errors.isEmpty()) {
         return this.validatorErrors(res, errors);
       }
+
       const { email, password, role } = req.body;
       const registrationDTO: RegistrationDTO = {
         email,
         password,
         role,
       };
-      console.log(registrationDTO);
-      const user = await this.service.registration(registrationDTO);
-      if (user === this.badRequest) return user(res, "test");
-      // let query = `SELECT * FROM users WHERE email = '${email}'`;
-      // const candidate = await (await db.query(query)).rows[0];
-      // if (candidate) {
-      //   return res
-      //     .status(400)
-      //     .json({ status: "fail", message: "Такой емайл уже занят" });
-      // }
-      // const hashPassword = bcrypt.hashSync(password, 5);
-      // query = `INSERT INTO users (email, password) VALUES ('${email}', '${hashPassword}') RETURNING *`;
-      // const user = await (await db.query(query)).rows[0];
-      // if (!user) {
-      //   return res.status(400).json({
-      //     status: "fail",
-      //     message: "Не получилось создать пользователя",
-      //   });
-      // }
-      // query = `INSERT INTO users_roles (user_id, role_id) VALUES('${
-      //   user.id
-      // }', ${role || 1}) RETURNING *`;
-      // const userRole = await (await db.query(query)).rows[0];
-      // if (!userRole) {
-      //   return res
-      //     .status(400)
-      //     .json({ status: "fail", message: "Не получилось создать роль" });
-      // }
-      // user.role = userRole.role;
-      return this.ok<IUser>(res, "С пылу жару", user);
+
+      const resDTO = await this.service.registration(registrationDTO);
+
+      if (resDTO.status !== "success") {
+        return resDTO.fn(res, resDTO.message);
+      }
+
+      const { message, data } = resDTO;
+      return this.ok<IUser>(res, message, data);
     } catch (e) {
       return this.serverError(res, "Error in the catch block Registration", e);
     }

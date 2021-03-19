@@ -13,13 +13,25 @@ export default class Middlewares extends ClientResponse {
   ) => {
     if (req.method === Methods.OPTIONS) return next();
     try {
+      console.log("Middlewares Auth Check");
+      if (!req.headers.authorization) {
+        return this.forbidden(res, "Пользователь не авторизован");
+      }
+
       const token = req.headers.authorization.split(" ")[1];
 
       if (!token) {
         return this.forbidden(res, "Пользователь не авторизован");
       }
 
-      const decodedData = jwt.verify(token, process.env.SECRET_KEY);
+      let decodedData;
+
+      try {
+        decodedData = jwt.verify(token, process.env.SECRET_KEY);
+      } catch (error) {
+        return this.forbidden(res, "Пользователь не авторизован");
+      }
+      // console.log("decodedData: ", decodedData);
       req.user = decodedData;
       next();
     } catch (e) {
