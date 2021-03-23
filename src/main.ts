@@ -7,19 +7,11 @@ import morgan from "morgan";
 
 import { Server, App, Database } from "./classes";
 
-import {
-  IndexController,
-  UsersController,
-  AuthController,
-} from "./api/v1/index";
+import { IndexController, UsersController } from "./api/v1/index";
 
 const app = new App({
   apiVersion: process.env.API_VERSION,
-  controllers: [
-    new IndexController(),
-    new UsersController(),
-    new AuthController(),
-  ],
+  controllers: [new IndexController(), new UsersController()],
   middlewares: [
     bodyParser.json(),
     bodyParser.urlencoded({ extended: true }),

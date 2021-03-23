@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 
 import UsersController from "./users";
-import AuthController from "./auth";
 
 import { Controller } from "../../classes";
 import { IRoute, Methods } from "../../classes/Controller/types";
@@ -30,4 +29,4 @@ class IndexController extends Controller {
   }
 }
 
-export { IndexController, UsersController, AuthController };
+export { IndexController, UsersController };
