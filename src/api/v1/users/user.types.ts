@@ -10,7 +10,7 @@ export interface IUser {
 export interface RegistrationDTO {
   email: string;
   password: string;
-  role?: number;
+  roles?: number[];
 }
 
 export interface LoginDTO {

@@ -14,12 +14,24 @@ export default class UsersService extends Service {
   shema = new UserModel();
 
   getAllUsers = async () => {
-    return await this.shema.getAll();
+    const users: IUser = await this.shema.getAll();
+    if (!users) {
+      return {
+        status: "fail",
+        fn: this.notFound,
+        message: "Пользователи не найдены =(",
+      };
+    }
+    return {
+      status: "success",
+      message: "Вы успешно зарегистрировались (Красава братишка!)",
+      data: users,
+    };
   };
 
   registration = async (dto: RegistrationDTO): Promise<any> => {
-    const { email, password, role } = dto;
-    const candidate: IUser = await this.shema.getOne({ where: { email } });
+    const { email, password, roles } = dto;
+    const candidate: IUser = await this.shema.getOne({ email });
     if (candidate) {
       return {
         status: "fail",
@@ -31,7 +43,7 @@ export default class UsersService extends Service {
     const user: IUser = await this.shema.create({
       email,
       password: hashPassword,
-      role,
+      roles,
     });
     return {
       status: "success",
@@ -42,7 +54,7 @@ export default class UsersService extends Service {
 
   login = async (dto: LoginDTO): Promise<any> => {
     const { email, password } = dto;
-    const candidate: IUser = await this.shema.getOne({ where: { email } });
+    const candidate: IUser = await this.shema.getOne({ email });
 
     if (!candidate) {
       return {

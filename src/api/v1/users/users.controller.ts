@@ -121,11 +121,11 @@ export default class UsersController extends Controller {
         return this.validatorErrors(res, errors);
       }
 
-      const { email, password, role } = req.body;
+      const { email, password, roles } = req.body;
       const registrationDTO: RegistrationDTO = {
         email,
         password,
-        role,
+        roles,
       };
 
       const resDTO = await this.service.registration(registrationDTO);
