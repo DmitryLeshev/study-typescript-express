@@ -1,5 +1,6 @@
+import { QueryResult } from "pg";
 import { db } from "../../../main";
-import { IUser, RegistrationDTO } from "./user.types";
+import { DeleteDTO, IUser, RegistrationDTO, UpdateDTO } from "./user.types";
 
 interface IWhere {
   email?: string;
@@ -8,7 +9,6 @@ interface IWhere {
 
 export default class UserModel {
   private tableName = "users";
-  private defaultRole = 1;
 
   public getOne = async (where: IWhere) => {
     const { email, id } = where;
@@ -73,17 +73,39 @@ export default class UserModel {
       `;
       await db.query(query);
     });
+
     await Promise.all(promises);
 
-    // query = `
-    // SELECT role
-    // FROM roles
-    // WHERE id = '${userRoleID.role_id}'
-    // `;
-    // const userRole = await (await db.query(query)).rows[0];
+    return user;
+  };
 
-    // user.role = userRole.role;
-    // user.roleId = userRoleID.role_id;
+  public delete = async (deleteDTO: DeleteDTO) => {
+    const { id } = deleteDTO;
+
+    let query = `
+      DELETE FROM users u
+      WHERE u.id = ${id}
+      RETURNING *
+    `;
+
+    const res: QueryResult<IUser> = await db.query(query);
+    const user = res.rows[0];
+
+    return user;
+  };
+
+  public update = async (updateDTO: UpdateDTO) => {
+    const { id, email } = updateDTO;
+
+    let query = `
+      UPDATE users u
+      SET email = ${email}
+      WHERE u.id = ${id}
+      RETURNING *
+    `;
+
+    const res: QueryResult<IUser> = await db.query(query);
+    const user = res.rows[0];
 
     return user;
   };

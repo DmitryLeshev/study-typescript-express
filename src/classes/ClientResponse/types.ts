@@ -35,3 +35,10 @@ export const enum HttpStatusVariant {
 export interface MyResponse<T> {
   (res: Response, code?: HttpStatusCode, message?: string, data?: T): Response;
 }
+
+export interface ResDTO<T> {
+  status: HttpStatusVariant;
+  fn?: any;
+  message?: string;
+  data?: T;
+}

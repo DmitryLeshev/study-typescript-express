@@ -1,5 +1,6 @@
 import express from "express";
 import { Application } from "express";
+import * as path from "path";
 
 export interface IAppInit {
   apiVersion: string;
@@ -17,7 +18,7 @@ export default class App {
 
     this.middlewares(appInit.middlewares);
     this.routes(appInit.controllers);
-    this.errorMiddleware();
+    this.assets();
   }
 
   private middlewares = (middlewares: any) => {
@@ -32,9 +33,9 @@ export default class App {
     });
   };
 
-  private errorMiddleware = () => {
-    // this.app.use(errorMiddleware);
-  };
+  private assets() {
+    this.app.use(express.static(path.resolve(__dirname, "..", "..", "static")));
+  }
 
   public listen = (port: number) => {
     this.app.listen(port, () => {

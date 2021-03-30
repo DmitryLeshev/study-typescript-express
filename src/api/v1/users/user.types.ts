@@ -7,7 +7,12 @@ export interface IUser {
   roles: Roles[];
 }
 
-export interface RegistrationDTO {
+export interface GetDTO {
+  id?: number;
+  search?: string;
+}
+
+export interface CreateDTO {
   email: string;
   password: string;
   roles?: number[];
@@ -16,4 +21,19 @@ export interface RegistrationDTO {
 export interface LoginDTO {
   email: string;
   password: string;
+}
+
+export interface DeleteDTO {
+  id?: number;
+}
+
+export interface UpdateDTO {
+  id?: number;
+  email?: string;
+}
+
+export interface RegistrationDTO {
+  email: string;
+  password: string;
+  roles?: number[];
 }

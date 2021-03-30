@@ -3,7 +3,13 @@ import { check, validationResult } from "express-validator";
 import { Controller, Middlewares } from "../../../classes";
 import { Methods, IRoute } from "../../../classes/Controller/types";
 import { Roles } from "../../../types/roles.types";
-import { IUser, LoginDTO, RegistrationDTO } from "./user.types";
+import {
+  CreateDTO,
+  GetDTO,
+  IUser,
+  LoginDTO,
+  RegistrationDTO,
+} from "./user.types";
 import UsersService from "./users.service";
 
 export default class UsersController extends Controller {
@@ -42,11 +48,8 @@ export default class UsersController extends Controller {
       {
         path: "/",
         method: Methods.GET,
-        handler: this.getAllUsers,
-        localMiddleware: [
-          this.middlewares.authCheck,
-          this.middlewares.rolesAvailable([Roles.USER]),
-        ],
+        handler: this.getUsers,
+        localMiddleware: [],
       },
       {
         path: "/:id",
@@ -89,29 +92,77 @@ export default class UsersController extends Controller {
     this.setRoutes();
   }
 
-  getAllUsers = async (_req: Request, res: Response, next: NextFunction) => {
-    const resDTO = await this.service.getAllUsers();
+  getUsers = async (_req: Request, res: Response, next: NextFunction) => {
+    const resDTO = await this.service.getUsers();
     if (resDTO.status !== "success") {
       return resDTO.fn(res, resDTO.message);
     }
     const { message, data } = resDTO;
-    return this.ok<IUser>(res, message, data);
+    return this.ok<IUser[]>(res, message, data);
   };
 
-  getUser = (req: Request, res: Response, next: NextFunction): any => {
-    this.ok<string[]>(res);
+  getUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const getUserDTO: GetDTO = {
+      id: Number(id),
+    };
+
+    const resDTO = await this.service.getUser(getUserDTO);
+
+    if (resDTO.status !== "success") {
+      return resDTO.fn(res, resDTO.message);
+    }
+
+    const { message, data } = resDTO;
+    this.ok<IUser>(res, message, data);
   };
 
-  createUser = (req: Request, res: Response, next: NextFunction): any => {
-    this.ok<string[]>(res);
+  createUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const getUserDTO: GetDTO = {
+      id: Number(id),
+    };
+
+    const resDTO = await this.service.getUser(getUserDTO);
+
+    if (resDTO.status !== "success") {
+      return resDTO.fn(res, resDTO.message);
+    }
+
+    const { message, data } = resDTO;
+    this.ok<IUser>(res, message, data);
   };
 
-  deleteUser = (req: Request, res: Response, next: NextFunction): any => {
-    this.ok<string[]>(res);
+  deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const getUserDTO: GetDTO = {
+      id: Number(id),
+    };
+
+    const resDTO = await this.service.getUser(getUserDTO);
+
+    if (resDTO.status !== "success") {
+      return resDTO.fn(res, resDTO.message);
+    }
+
+    const { message, data } = resDTO;
+    this.ok<IUser>(res, message, data);
   };
 
-  updateUser = (req: Request, res: Response, next: NextFunction): any => {
-    this.ok<string[]>(res);
+  updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const getUserDTO: GetDTO = {
+      id: Number(id),
+    };
+
+    const resDTO = await this.service.getUser(getUserDTO);
+
+    if (resDTO.status !== "success") {
+      return resDTO.fn(res, resDTO.message);
+    }
+
+    const { message, data } = resDTO;
+    this.ok<IUser>(res, message, data);
   };
 
   registration = async (req: Request, res: Response, next: NextFunction) => {
@@ -122,13 +173,13 @@ export default class UsersController extends Controller {
       }
 
       const { email, password, roles } = req.body;
-      const registrationDTO: RegistrationDTO = {
+      const createDRO: CreateDTO = {
         email,
         password,
         roles,
       };
 
-      const resDTO = await this.service.registration(registrationDTO);
+      const resDTO = await this.service.createUser(createDRO);
 
       if (resDTO.status !== "success") {
         return resDTO.fn(res, resDTO.message);
@@ -152,6 +203,6 @@ export default class UsersController extends Controller {
       return resDTO.fn(res, resDTO.message);
     }
     const { message, data } = resDTO;
-    return this.ok<IUser>(res, message, data);
+    return this.ok<{ user: IUser; token: any }>(res, message, data);
   };
 }

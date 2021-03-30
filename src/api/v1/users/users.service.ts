@@ -2,8 +2,19 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import Service from "../../../classes/Service";
-import { IUser, LoginDTO, RegistrationDTO } from "./user.types";
+import {
+  CreateDTO,
+  DeleteDTO,
+  GetDTO,
+  IUser,
+  LoginDTO,
+  UpdateDTO,
+} from "./user.types";
 import UserModel from "./user.model";
+import {
+  HttpStatusVariant,
+  ResDTO,
+} from "../../../classes/ClientResponse/types";
 
 const generateAccessToken = (id: number, roles: string[]) => {
   const payload = { id, roles };
@@ -13,28 +24,79 @@ const generateAccessToken = (id: number, roles: string[]) => {
 export default class UsersService extends Service {
   shema = new UserModel();
 
-  getAllUsers = async () => {
-    const users: IUser = await this.shema.getAll();
+  getUsers = async (): Promise<ResDTO<IUser[]>> => {
+    const users: IUser[] = await this.shema.getAll();
     if (!users) {
       return {
-        status: "fail",
+        status: HttpStatusVariant.FAIL,
         fn: this.notFound,
         message: "Пользователи не найдены =(",
       };
     }
     return {
-      status: "success",
-      message: "Вы успешно зарегистрировались (Красава братишка!)",
+      status: HttpStatusVariant.SUCCESS,
+      message: "Ваш список пользователей ;)",
       data: users,
     };
   };
 
-  registration = async (dto: RegistrationDTO): Promise<any> => {
+  getUser = async (dto: GetDTO): Promise<ResDTO<IUser>> => {
+    const { id } = dto;
+    const user: IUser = await this.shema.getOne({ id });
+    if (!user) {
+      return {
+        status: HttpStatusVariant.FAIL,
+        fn: this.notFound,
+        message: `Пользователь по id ${id} не найден =(`,
+      };
+    }
+    return {
+      status: HttpStatusVariant.SUCCESS,
+      message: "Вы успешно зарегистрировались (Красава братишка!)",
+      data: user,
+    };
+  };
+
+  deleteUser = async (dto: DeleteDTO): Promise<ResDTO<IUser>> => {
+    const { id } = dto;
+    const user: IUser = await this.shema.delete({ id });
+    if (!user) {
+      return {
+        status: HttpStatusVariant.FAIL,
+        fn: this.notFound,
+        message: `Пользователь по id ${id} не найден =(`,
+      };
+    }
+    return {
+      status: HttpStatusVariant.SUCCESS,
+      message: `Пользователь под номером №${id}, уничтожен`,
+      data: user,
+    };
+  };
+
+  updateUser = async (dto: UpdateDTO): Promise<ResDTO<IUser>> => {
+    const { email, id } = dto;
+    const user: IUser = await this.shema.update({ id, email });
+    if (!user) {
+      return {
+        status: HttpStatusVariant.FAIL,
+        fn: this.notFound,
+        message: `Пользователь по id ${id} не найден =(`,
+      };
+    }
+    return {
+      status: HttpStatusVariant.SUCCESS,
+      message: `Пользователь c ${id}, изменён`,
+      data: user,
+    };
+  };
+
+  createUser = async (dto: CreateDTO): Promise<ResDTO<IUser>> => {
     const { email, password, roles } = dto;
     const candidate: IUser = await this.shema.getOne({ email });
     if (candidate) {
       return {
-        status: "fail",
+        status: HttpStatusVariant.FAIL,
         fn: this.badRequest,
         message: "Такой email занят",
       };
@@ -46,41 +108,43 @@ export default class UsersService extends Service {
       roles,
     });
     return {
-      status: "success",
+      status: HttpStatusVariant.SUCCESS,
       message: "Вы успешно зарегистрировались (Красава братишка!)",
       data: user,
     };
   };
 
-  login = async (dto: LoginDTO): Promise<any> => {
+  login = async (
+    dto: LoginDTO
+  ): Promise<ResDTO<{ user: IUser; token: any }>> => {
     const { email, password } = dto;
-    const candidate: IUser = await this.shema.getOne({ email });
+    const user: IUser = await this.shema.getOne({ email });
 
-    if (!candidate) {
+    if (!user) {
       return {
-        status: "fail",
+        status: HttpStatusVariant.FAIL,
         fn: this.badRequest,
         message: "Такого пользователя в базе нэтъ",
       };
     }
 
-    const validPassword = bcrypt.compareSync(password, candidate.password);
+    const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
       return {
-        status: "fail",
+        status: HttpStatusVariant.FAIL,
         fn: this.badRequest,
         message:
           "Не верный пароль, знаю-знаю это подсказка для злоумышленников",
       };
     }
 
-    const token = generateAccessToken(candidate.id, candidate.roles);
+    const token = generateAccessToken(user.id, user.roles);
 
     return {
-      status: "success",
+      status: HttpStatusVariant.SUCCESS,
       message:
         "ХОРОШ! ХОРОШ, ХОРОШ! Бро, мои поздравления, держи заслуженный токен",
-      data: { candidate, token },
+      data: { user, token },
     };
   };
 }
